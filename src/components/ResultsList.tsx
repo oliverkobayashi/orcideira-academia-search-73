@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getPaperDetails, getAuthorDetails } from '../utils/api';
 import { Paper, Author } from '../context/SearchContext';
+import { toast } from "@/hooks/use-toast";
 
 const ResultsList: React.FC = () => {
   const {
@@ -24,15 +25,28 @@ const ResultsList: React.FC = () => {
       
       let detailedItem;
       if (buscaTipo === 'papers') {
+        console.log("Buscando detalhes do paper:", (item as Paper).paperId);
         detailedItem = await getPaperDetails((item as Paper).paperId);
       } else {
+        console.log("Buscando detalhes do autor:", (item as Author).id);
         detailedItem = await getAuthorDetails((item as Author).id);
       }
       
       if (detailedItem) {
+        console.log("Detalhes obtidos:", detailedItem);
         setDetalheSelecionado(detailedItem);
+        toast({
+          title: "Detalhes carregados",
+          description: `Detalhes carregados com sucesso`,
+        });
       } else {
+        console.log("Nenhum detalhe encontrado, usando item original:", item);
         setDetalheSelecionado(item);
+        toast({
+          title: "Informação limitada",
+          description: "Não foi possível carregar detalhes completos",
+          variant: "destructive",
+        });
       }
       
       setDetalheCarregado(true);
@@ -41,6 +55,12 @@ const ResultsList: React.FC = () => {
       // Fallback to original item if details fetch fails
       setDetalheSelecionado(item);
       setDetalheCarregado(true);
+      
+      toast({
+        title: "Erro ao carregar detalhes",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
     }
   };
 
@@ -69,6 +89,8 @@ const ResultsList: React.FC = () => {
     );
   }
 
+  console.log("Renderizando lista de resultados:", resultados);
+
   return (
     <div className="w-full max-w-3xl mx-auto">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">
@@ -85,7 +107,7 @@ const ResultsList: React.FC = () => {
               <CardContent className="pt-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1">{paper.title}</h3>
                 <p className="text-gray-600 text-sm mb-2">
-                  {paper.authors.join(', ')} 
+                  {Array.isArray(paper.authors) && paper.authors.join(', ')} 
                   {paper.year ? ` (${paper.year})` : ''}
                 </p>
                 {paper.abstract && (
@@ -117,7 +139,7 @@ const ResultsList: React.FC = () => {
               <CardContent className="pt-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-1">{author.name}</h3>
                 <p className="text-gray-600 text-sm mb-2">
-                  {author.affiliations.join(', ')}
+                  {author.affiliations && author.affiliations.join(', ')}
                 </p>
                 {author.educationSummary && (
                   <p className="text-gray-700 text-sm mb-1">

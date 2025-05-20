@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { searchPapers, searchAuthors } from '../utils/api';
+import { toast } from "@/hooks/use-toast";
 
 const SearchBar: React.FC = () => {
   const {
@@ -29,6 +30,11 @@ const SearchBar: React.FC = () => {
 
     if (!termoBusca.trim()) {
       setErro("Digite um termo para buscar");
+      toast({
+        title: "Erro na busca",
+        description: "Digite um termo para buscar",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -36,6 +42,8 @@ const SearchBar: React.FC = () => {
     setErro(null);
     
     try {
+      console.log(`Buscando ${buscaTipo === 'papers' ? 'publicações' : 'autores'} com termo: ${termoBusca}`);
+      
       let results;
       if (buscaTipo === 'papers') {
         results = await searchPapers(termoBusca);
@@ -43,13 +51,30 @@ const SearchBar: React.FC = () => {
         results = await searchAuthors(termoBusca);
       }
       
+      console.log("Resultados obtidos:", results);
       setResultados(results);
       
       if (results.length === 0) {
         setErro(`Nenhum resultado encontrado para "${termoBusca}"`);
+        toast({
+          title: "Sem resultados",
+          description: `Nenhum resultado encontrado para "${termoBusca}"`,
+        });
+      } else {
+        toast({
+          title: "Busca concluída",
+          description: `Encontrados ${results.length} resultados para "${termoBusca}"`,
+        });
       }
     } catch (error) {
-      setErro(`Erro ao buscar: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error("Erro na busca:", errorMessage);
+      setErro(`Erro ao buscar: ${errorMessage}`);
+      toast({
+        title: "Erro na busca",
+        description: errorMessage,
+        variant: "destructive",
+      });
       setResultados([]);
     } finally {
       setCarregando(false);
