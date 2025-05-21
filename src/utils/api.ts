@@ -118,7 +118,7 @@ export const getAuthorDetails = async (authorId: string): Promise<Author | null>
   try {
     console.log(`Buscando detalhes do autor ID: ${authorId}`);
     const response = await fetch(
-      `${API_BASE_URL}/author/${authorId}?fields=authorId,name,affiliations,homepage,papers,hIndex,paperCount,citationCount,externalIds`
+      `${API_BASE_URL}/author/${authorId}?fields=authorId,name,affiliations,homepage,papers.title,papers.year,papers.citationCount,papers.authors,papers.paperId,hIndex,paperCount,citationCount,externalIds`
     );
     
     if (!response.ok) {

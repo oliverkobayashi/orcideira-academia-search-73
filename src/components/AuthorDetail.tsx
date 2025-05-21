@@ -4,12 +4,49 @@ import { Author } from '../context/SearchContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChartContainer } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line } from 'recharts';
 
 interface AuthorDetailProps {
   author: Author;
 }
 
+// Helper function to convert publications to yearly data for charts
+const generateYearlyData = (publications: any[] = []) => {
+  const citationsByYear: Record<string, number> = {};
+  const pubsByYear: Record<string, number> = {};
+  
+  // Count publications by year
+  publications.forEach(pub => {
+    if (pub.year) {
+      pubsByYear[pub.year] = (pubsByYear[pub.year] || 0) + 1;
+      
+      // Add citation count to the year
+      const citations = pub.citationCount || 0;
+      citationsByYear[pub.year] = (citationsByYear[pub.year] || 0) + citations;
+    }
+  });
+  
+  // Convert to array format for charts
+  const pubData = Object.keys(pubsByYear).map(year => ({
+    year,
+    count: pubsByYear[year]
+  })).sort((a, b) => Number(a.year) - Number(b.year));
+  
+  const citationData = Object.keys(citationsByYear).map(year => ({
+    year,
+    count: citationsByYear[year]
+  })).sort((a, b) => Number(a.year) - Number(b.year));
+  
+  return { pubData, citationData };
+};
+
 const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
+  const { pubData, citationData } = generateYearlyData(author.publications);
+
+  const hasYearlyData = pubData.length > 0 || citationData.length > 0;
+
   return (
     <ScrollArea className="max-h-[80vh] overflow-auto pr-4">
       <CardHeader>
@@ -25,7 +62,14 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
           {author.orcidId && (
             <div>
               <h3 className="font-semibold text-gray-700">ORCID ID</h3>
-              <p className="text-gray-600 text-sm">{author.orcidId}</p>
+              <a 
+                href={`https://orcid.org/${author.orcidId}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-primary hover:underline text-sm"
+              >
+                {author.orcidId}
+              </a>
             </div>
           )}
           
@@ -47,26 +91,68 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
         {/* Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {author.hIndex !== undefined && (
-            <div className="bg-gray-50 p-3 rounded-lg shadow-sm">
+            <div className="bg-primary-light p-3 rounded-lg shadow-sm">
               <h3 className="font-semibold text-gray-700">Índice H</h3>
               <p className="text-xl font-bold text-primary mt-1">{author.hIndex}</p>
             </div>
           )}
           
           {author.totalPublications !== undefined && (
-            <div className="bg-gray-50 p-3 rounded-lg shadow-sm">
+            <div className="bg-primary-light p-3 rounded-lg shadow-sm">
               <h3 className="font-semibold text-gray-700">Publicações</h3>
               <p className="text-xl font-bold text-primary mt-1">{author.totalPublications}</p>
             </div>
           )}
           
           {author.totalCitations !== undefined && (
-            <div className="bg-gray-50 p-3 rounded-lg shadow-sm">
+            <div className="bg-primary-light p-3 rounded-lg shadow-sm">
               <h3 className="font-semibold text-gray-700">Citações</h3>
               <p className="text-xl font-bold text-primary mt-1">{author.totalCitations}</p>
             </div>
           )}
         </div>
+
+        {/* Charts for publication and citation data */}
+        {hasYearlyData && (
+          <div>
+            <Separator className="my-4" />
+            <h3 className="font-semibold text-gray-700 mb-4">Métricas por Ano</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {pubData.length > 0 && (
+                <div className="bg-white p-4 rounded-lg shadow-sm">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Publicações por Ano</h4>
+                  <div className="h-60">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={pubData}>
+                        <XAxis dataKey="year" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#4CAF50" name="Publicações" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+              
+              {citationData.length > 0 && (
+                <div className="bg-white p-4 rounded-lg shadow-sm">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Citações por Ano</h4>
+                  <div className="h-60">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={citationData}>
+                        <XAxis dataKey="year" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="count" stroke="#4CAF50" name="Citações" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         
         {/* Education */}
         {author.educationDetails && author.educationDetails.length > 0 && (
@@ -105,7 +191,7 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
             <h3 className="font-semibold text-gray-700 mb-2">Publicações ({author.publications.length})</h3>
             <ul className="space-y-3">
               {author.publications.map((publication, index) => (
-                <li key={publication.paperId || index} className="text-sm">
+                <li key={publication.paperId || index} className="text-sm border-l-2 border-primary-light pl-3 py-1">
                   <div className="font-medium text-gray-700">{publication.title}</div>
                   <div className="text-gray-500">
                     {typeof publication.authors === 'string' ? 
@@ -117,6 +203,11 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                         '')}
                     {publication.year && <span> ({publication.year})</span>}
                   </div>
+                  {publication.citationCount !== undefined && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      Citações: {publication.citationCount}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
