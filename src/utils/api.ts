@@ -1,195 +1,134 @@
 
-import { Author, Paper } from '../context/SearchContext';
+import { Paper, Author } from '../context/SearchContext';
 
-// Real API functions
+const API_BASE_URL = 'https://api.semanticscholar.org/graph/v1';
+
+// Transforma os dados do paper vindo da API para o formato que usamos internamente
+const transformPaperData = (paperData: any): Paper => {
+  return {
+    paperId: paperData.paperId,
+    title: paperData.title || 'Sem título',
+    authors: Array.isArray(paperData.authors)
+      ? paperData.authors.map((author: any) => (typeof author === 'string' ? author : author.name))
+      : [],
+    year: paperData.year,
+    abstract: paperData.abstract,
+    citationCount: paperData.citationCount,
+    fieldsOfStudy: paperData.fieldsOfStudy || [],
+    doi: paperData.externalIds?.DOI || '',
+    references: Array.isArray(paperData.references) ? paperData.references.map(transformPaperData) : [],
+    recommendedPapers: Array.isArray(paperData.recommendedPapers) ? paperData.recommendedPapers.map(transformPaperData) : [],
+  };
+};
+
+// Transforma os dados do autor vindo da API para o formato que usamos internamente
+const transformAuthorData = (authorData: any): Author => {
+  return {
+    id: authorData.authorId || authorData.id,
+    name: authorData.name || 'Nome não disponível',
+    orcidId: authorData.externalIds?.ORCID || '',
+    affiliations: Array.isArray(authorData.affiliations) ? authorData.affiliations : [],
+    hIndex: authorData.hIndex,
+    totalPublications: authorData.paperCount,
+    totalCitations: authorData.citationCount,
+    educationSummary: authorData.education || '',
+    educationDetails: authorData.educationalDetails || [],
+    professionalExperiences: authorData.experiences || [],
+    personalPageUrl: authorData.homepage || '',
+    publications: Array.isArray(authorData.papers) ? authorData.papers.map(transformPaperData) : [],
+  };
+};
+
+// Função para buscar papers
 export const searchPapers = async (query: string): Promise<Paper[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  if (!query.trim()) return [];
-  
   try {
-    const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(query)}&fields=paperId,title,authors,year,abstract,citationCount,externalIds&limit=10`);
+    console.log(`Fazendo busca de papers com query: ${query}`);
+    const response = await fetch(
+      `${API_BASE_URL}/paper/search?query=${encodeURIComponent(query)}&fields=paperId,title,authors,citationCount,year,abstract,externalIds&limit=10`
+    );
     
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      throw new Error(`Erro na busca: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
+    console.log('Resultados da API de papers:', data);
     
-    if (!data.data) {
+    if (!data.data || !Array.isArray(data.data)) {
       return [];
     }
     
-    // Transform the API response to match our expected format
-    return data.data.map((paper: any) => ({
-      paperId: paper.paperId,
-      title: paper.title || "Título não disponível",
-      authors: paper.authors?.map((author: any) => author.name) || ["Autores não disponíveis"],
-      year: paper.year,
-      abstract: paper.abstract,
-      citationCount: paper.citationCount,
-      doi: paper.externalIds?.DOI || null
-    }));
+    return data.data.map(transformPaperData);
   } catch (error) {
-    console.error("Error searching papers:", error);
+    console.error('Erro ao buscar papers:', error);
     throw error;
   }
 };
 
+// Função para buscar autores
 export const searchAuthors = async (query: string): Promise<Author[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  if (!query.trim()) return [];
-  
   try {
-    const response = await fetch(`https://api.semanticscholar.org/graph/v1/author/search?query=${encodeURIComponent(query)}&fields=authorId,name,affiliations,paperCount,citationCount,hIndex&limit=10`);
+    console.log(`Fazendo busca de autores com query: ${query}`);
+    const response = await fetch(
+      `${API_BASE_URL}/author/search?query=${encodeURIComponent(query)}&fields=authorId,name,affiliations,homepage,papers,hIndex,paperCount,citationCount,externalIds&limit=10`
+    );
     
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      throw new Error(`Erro na busca: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
+    console.log('Resultados da API de autores:', data);
     
-    if (!data.data) {
+    if (!data.data || !Array.isArray(data.data)) {
       return [];
     }
     
-    // Transform the API response to match our expected format
-    return data.data.map((author: any) => ({
-      id: author.authorId,
-      name: author.name || "Nome não disponível",
-      affiliations: author.affiliations || ["Afiliação não disponível"],
-      hIndex: author.hIndex,
-      totalPublications: author.paperCount,
-      totalCitations: author.citationCount,
-      educationSummary: author.affiliations?.[0] || "Informação não disponível"
-    }));
+    return data.data.map(transformAuthorData);
   } catch (error) {
-    console.error("Error searching authors:", error);
+    console.error('Erro ao buscar autores:', error);
     throw error;
   }
 };
 
+// Função para buscar detalhes de um paper específico
 export const getPaperDetails = async (paperId: string): Promise<Paper | null> => {
   try {
-    const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/${paperId}?fields=paperId,title,abstract,year,authors,citations,references,fieldsOfStudy,externalIds,citationCount`);
+    console.log(`Buscando detalhes do paper ID: ${paperId}`);
+    const response = await fetch(
+      `${API_BASE_URL}/paper/${paperId}?fields=paperId,title,authors,citationCount,year,abstract,references,fieldsOfStudy,externalIds,recommendedPapers`
+    );
     
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      throw new Error(`Erro ao buscar detalhes: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
-    
-    return {
-      paperId: data.paperId,
-      title: data.title || "Título não disponível",
-      abstract: data.abstract || "Resumo não disponível",
-      year: data.year,
-      authors: data.authors?.map((author: any) => author.name) || [],
-      citationCount: data.citationCount,
-      doi: data.externalIds?.DOI || "N/A",
-      fieldsOfStudy: data.fieldsOfStudy || [],
-      references: data.references?.map((ref: any) => ({
-        paperId: ref.paperId,
-        title: ref.title || "Título não disponível",
-        authors: ref.authors?.map((author: any) => author.name) || [],
-        year: ref.year
-      })) || [],
-      recommendedPapers: [] // API doesn't directly provide this
-    };
+    console.log('Detalhes do paper obtidos:', data);
+    return transformPaperData(data);
   } catch (error) {
-    console.error("Error fetching paper details:", error);
-    return null;
+    console.error('Erro ao buscar detalhes do paper:', error);
+    throw error;
   }
 };
 
+// Função para buscar detalhes de um autor específico
 export const getAuthorDetails = async (authorId: string): Promise<Author | null> => {
   try {
-    const response = await fetch(`https://api.semanticscholar.org/graph/v1/author/${authorId}?fields=authorId,name,affiliations,paperCount,citationCount,hIndex,papers`);
+    console.log(`Buscando detalhes do autor ID: ${authorId}`);
+    const response = await fetch(
+      `${API_BASE_URL}/author/${authorId}?fields=authorId,name,affiliations,homepage,papers,hIndex,paperCount,citationCount,externalIds`
+    );
     
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      throw new Error(`Erro ao buscar detalhes: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
-    
-    return {
-      id: data.authorId,
-      name: data.name || "Nome não disponível",
-      affiliations: data.affiliations || ["Afiliação não disponível"],
-      hIndex: data.hIndex,
-      totalPublications: data.paperCount,
-      totalCitations: data.citationCount,
-      educationSummary: data.affiliations?.[0] || "Informação não disponível",
-      publications: data.papers?.map((paper: any) => ({
-        paperId: paper.paperId,
-        title: paper.title || "Título não disponível",
-        authors: paper.authors?.map((author: any) => author.name) || [],
-        year: paper.year
-      })) || [],
-      educationDetails: [],
-      professionalExperiences: []
-    };
+    console.log('Detalhes do autor obtidos:', data);
+    return transformAuthorData(data);
   } catch (error) {
-    console.error("Error fetching author details:", error);
-    return null;
+    console.error('Erro ao buscar detalhes do autor:', error);
+    throw error;
   }
-};
-
-// Mock auth functions (for future implementation)
-export const login = async (email: string, password: string) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Mock validation
-  if (email === "demo@example.com" && password === "password") {
-    return { success: true, token: "mock-token-123" };
-  }
-  
-  throw new Error("Email ou senha incorretos");
-};
-
-export const register = async (userData: {
-  nome: string;
-  sobrenome: string;
-  email: string;
-  orcidId: string;
-  senha: string;
-}) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Mock validation
-  if (userData.email === "demo@example.com") {
-    throw new Error("Este email já está registrado");
-  }
-  
-  return { success: true };
-};
-
-export const getUserProfile = async (token: string) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  // Mock validation
-  if (token !== "mock-token-123") {
-    throw new Error("Sessão inválida ou expirada");
-  }
-  
-  return {
-    name: "Demo User",
-    email: "demo@example.com",
-    orcidId: "0000-0000-0000-0000",
-    personalPageUrl: "https://orcid.org/0000-0000-0000-0000",
-    publications: [
-      {
-        paperId: 'p10',
-        title: 'Demo Publication Title',
-        authors: ['Demo User', 'Another Author'],
-        year: 2023
-      }
-    ]
-  };
 };

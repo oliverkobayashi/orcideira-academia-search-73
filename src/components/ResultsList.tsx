@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { getPaperDetails, getAuthorDetails } from '../utils/api';
 import { Paper, Author } from '../context/SearchContext';
 import { toast } from "@/hooks/use-toast";
+import { ExternalLink } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 const ResultsList: React.FC = () => {
   const {
@@ -15,37 +17,49 @@ const ResultsList: React.FC = () => {
     erro,
     setDetalheSelecionado,
     setDetalheCarregado,
-    setDetailModalOpen,
   } = useSearch();
+  
+  const navigate = useNavigate();
 
   const handleViewDetails = async (item: Paper | Author) => {
     try {
       setDetalheCarregado(false);
-      setDetailModalOpen(true);
+      setDetalheSelecionado(item);
       
       let detailedItem;
+      let detailPath = '';
+      
       if (buscaTipo === 'papers') {
         console.log("Buscando detalhes do paper:", (item as Paper).paperId);
         detailedItem = await getPaperDetails((item as Paper).paperId);
+        detailPath = `/paper/${(item as Paper).paperId}`;
       } else {
         console.log("Buscando detalhes do autor:", (item as Author).id);
         detailedItem = await getAuthorDetails((item as Author).id);
+        detailPath = `/author/${(item as Author).id}`;
       }
       
       if (detailedItem) {
         console.log("Detalhes obtidos:", detailedItem);
         setDetalheSelecionado(detailedItem);
+        
+        // Abrir em nova aba
+        window.open(detailPath, '_blank');
+        
         toast({
           title: "Detalhes carregados",
-          description: `Detalhes carregados com sucesso`,
+          description: `Detalhes carregados em uma nova aba`,
         });
       } else {
         console.log("Nenhum detalhe encontrado, usando item original:", item);
         setDetalheSelecionado(item);
+        
+        // Abrir em nova aba mesmo sem detalhes completos
+        window.open(detailPath, '_blank');
+        
         toast({
           title: "Informação limitada",
-          description: "Não foi possível carregar detalhes completos",
-          variant: "destructive",
+          description: "Detalhes parciais carregados em uma nova aba",
         });
       }
       
@@ -125,9 +139,10 @@ const ResultsList: React.FC = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => handleViewDetails(paper)}
-                  className="text-primary hover:text-primary-dark hover:bg-primary-light"
+                  className="text-primary hover:text-primary-dark hover:bg-primary-light flex items-center gap-1"
                 >
-                  Ver detalhes
+                  <span>Ver detalhes</span>
+                  <ExternalLink size={16} />
                 </Button>
               </CardFooter>
             </Card>
@@ -168,9 +183,10 @@ const ResultsList: React.FC = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => handleViewDetails(author)}
-                  className="text-primary hover:text-primary-dark hover:bg-primary-light"
+                  className="text-primary hover:text-primary-dark hover:bg-primary-light flex items-center gap-1"
                 >
-                  Ver perfil
+                  <span>Ver perfil</span>
+                  <ExternalLink size={16} />
                 </Button>
               </CardFooter>
             </Card>
