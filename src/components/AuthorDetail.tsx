@@ -4,11 +4,10 @@ import { Author } from '../context/SearchContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChartContainer } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { LineChart, Line } from 'recharts';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Book, Briefcase, GraduationCap, Link as LinkIcon, Orcid } from 'lucide-react';
+import { Book, Briefcase, GraduationCap, Link as LinkIcon, ExternalLink } from 'lucide-react';
 
 interface AuthorDetailProps {
   author: Author;
@@ -63,14 +62,14 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {author.orcidId && (
             <div className="flex items-center gap-2">
-              <Orcid className="h-4 w-4 text-primary" />
+              <ExternalLink className="h-4 w-4 text-green-600" />
               <div>
                 <h3 className="font-semibold text-gray-700">ORCID ID</h3>
                 <a 
                   href={`https://orcid.org/${author.orcidId}`} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-primary hover:underline text-sm"
+                  className="text-green-600 hover:underline text-sm"
                 >
                   {author.orcidId}
                 </a>
