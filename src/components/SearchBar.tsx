@@ -87,14 +87,14 @@ const SearchBar: React.FC = () => {
         <div className="flex-shrink-0">
           <Select
             value={buscaTipo}
-            onValueChange={(value) => setBuscaTipo(value as 'papers' | 'autores')}
+            onValueChange={(value) => setBuscaTipo(value as 'papers' | 'authors')}
           >
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Buscar por" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="papers">Publicações</SelectItem>
-              <SelectItem value="autores">Autores</SelectItem>
+              <SelectItem value="authors">Autores</SelectItem>
             </SelectContent>
           </Select>
         </div>
