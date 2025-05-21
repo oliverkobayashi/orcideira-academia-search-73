@@ -132,3 +132,49 @@ export const getAuthorDetails = async (authorId: string): Promise<Author | null>
     throw error;
   }
 };
+
+// Interface para os dados de registro
+interface RegisterData {
+  nome: string;
+  sobrenome: string;
+  email: string;
+  orcidId?: string;
+  senha: string;
+}
+
+// Função para registrar usuário (simulada pois não temos backend)
+export const register = async (userData: RegisterData): Promise<void> => {
+  console.log('Registrando usuário:', userData);
+  
+  // Simulando chamada de API
+  return new Promise((resolve, reject) => {
+    // Simulando um tempo de resposta
+    setTimeout(() => {
+      if (userData.email && userData.senha && userData.nome && userData.sobrenome) {
+        console.log('Usuário registrado com sucesso');
+        resolve();
+      } else {
+        reject(new Error('Dados de usuário incompletos'));
+      }
+    }, 1000);
+  });
+};
+
+// Função para login de usuário (simulada pois não temos backend)
+export const login = async (email: string, senha: string): Promise<{ token: string }> => {
+  console.log('Tentativa de login:', { email });
+  
+  // Simulando chamada de API
+  return new Promise((resolve, reject) => {
+    // Simulando um tempo de resposta
+    setTimeout(() => {
+      // Simulando credenciais válidas para demonstração
+      if (email === "joao.silva@email.com" && senha === "senha123") {
+        console.log('Login bem-sucedido');
+        resolve({ token: 'simulado-token' });
+      } else {
+        reject(new Error('Email ou senha incorretos'));
+      }
+    }, 1000);
+  });
+};
