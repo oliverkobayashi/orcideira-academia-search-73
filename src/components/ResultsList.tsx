@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { getPaperDetails, getAuthorDetails } from '../utils/api';
 import { Paper, Author } from '../context/SearchContext';
 import { toast } from "@/hooks/use-toast";
-import { ExternalLink } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 
 const ResultsList: React.FC = () => {
@@ -43,23 +42,23 @@ const ResultsList: React.FC = () => {
         console.log("Detalhes obtidos:", detailedItem);
         setDetalheSelecionado(detailedItem);
         
-        // Abrir em nova aba
-        window.open(detailPath, '_blank');
+        // Navegar na mesma janela em vez de abrir uma nova aba
+        navigate(detailPath);
         
         toast({
           title: "Detalhes carregados",
-          description: `Detalhes carregados em uma nova aba`,
+          description: `Detalhes de ${buscaTipo === 'papers' ? 'publicação' : 'autor'} carregados`,
         });
       } else {
         console.log("Nenhum detalhe encontrado, usando item original:", item);
         setDetalheSelecionado(item);
         
-        // Abrir em nova aba mesmo sem detalhes completos
-        window.open(detailPath, '_blank');
+        // Navegar mesmo com dados limitados
+        navigate(detailPath);
         
         toast({
           title: "Informação limitada",
-          description: "Detalhes parciais carregados em uma nova aba",
+          description: "Detalhes parciais carregados",
         });
       }
       
@@ -142,7 +141,6 @@ const ResultsList: React.FC = () => {
                   className="text-primary hover:text-primary-dark hover:bg-primary-light flex items-center gap-1"
                 >
                   <span>Ver detalhes</span>
-                  <ExternalLink size={16} />
                 </Button>
               </CardFooter>
             </Card>
@@ -186,7 +184,6 @@ const ResultsList: React.FC = () => {
                   className="text-primary hover:text-primary-dark hover:bg-primary-light flex items-center gap-1"
                 >
                   <span>Ver perfil</span>
-                  <ExternalLink size={16} />
                 </Button>
               </CardFooter>
             </Card>

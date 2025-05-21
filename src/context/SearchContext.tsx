@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 // Define types for our search results
@@ -29,7 +28,7 @@ export type Paper = {
   references?: Paper[];
   fieldsOfStudy?: string[];
   doi?: string;
-  recommendedPapers?: Paper[];
+  recommendedPapers?: Paper[]; // Tornando opcional já que a API não suporta
 };
 
 interface SearchContextType {

@@ -17,7 +17,7 @@ const transformPaperData = (paperData: any): Paper => {
     fieldsOfStudy: paperData.fieldsOfStudy || [],
     doi: paperData.externalIds?.DOI || '',
     references: Array.isArray(paperData.references) ? paperData.references.map(transformPaperData) : [],
-    recommendedPapers: Array.isArray(paperData.recommendedPapers) ? paperData.recommendedPapers.map(transformPaperData) : [],
+    // Removendo recommendedPapers pois não é suportado pela API
   };
 };
 
@@ -95,8 +95,9 @@ export const searchAuthors = async (query: string): Promise<Author[]> => {
 export const getPaperDetails = async (paperId: string): Promise<Paper | null> => {
   try {
     console.log(`Buscando detalhes do paper ID: ${paperId}`);
+    // Removendo 'recommendedPapers' do campo de consulta pois não é suportado
     const response = await fetch(
-      `${API_BASE_URL}/paper/${paperId}?fields=paperId,title,authors,citationCount,year,abstract,references,fieldsOfStudy,externalIds,recommendedPapers`
+      `${API_BASE_URL}/paper/${paperId}?fields=paperId,title,authors,citationCount,year,abstract,references,fieldsOfStudy,externalIds`
     );
     
     if (!response.ok) {

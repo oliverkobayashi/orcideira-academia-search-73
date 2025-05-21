@@ -83,27 +83,6 @@ const PaperDetail: React.FC<PaperDetailProps> = ({ paper }) => {
             </ul>
           </div>
         )}
-        
-        {/* Recommended Papers */}
-        {paper.recommendedPapers && paper.recommendedPapers.length > 0 && (
-          <div>
-            <Separator className="my-4" />
-            <h3 className="font-semibold text-gray-700 mb-2">Artigos Recomendados</h3>
-            <ul className="space-y-2">
-              {paper.recommendedPapers.map((rec, index) => (
-                <li key={rec.paperId || index} className="text-sm text-gray-600">
-                  <div className="font-medium">{rec.title}</div>
-                  <div className="text-gray-500">
-                    {typeof rec.authors[0] === 'string' ? 
-                      rec.authors.join(', ') : 
-                      rec.authors.map((a: any) => a.name).join(', ')}
-                    {rec.year && <span> ({rec.year})</span>}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </CardContent>
     </ScrollArea>
   );
