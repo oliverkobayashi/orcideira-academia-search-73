@@ -1,96 +1,76 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-// Define types for our search results
-export type Author = {
+import React, { createContext, useContext, useState } from 'react';
+
+export interface Paper {
+  paperId: string;
+  title: string;
+  authors: string[] | {name: string}[];
+  year?: number;
+  abstract?: string;
+  citationCount?: number;
+  fieldsOfStudy?: string[];
+  doi?: string;
+  references?: Paper[];
+}
+
+export interface Author {
   id: string;
   name: string;
   orcidId?: string;
   affiliations: string[];
   hIndex?: number;
-  paperCount?: number;
-  citationCount?: number;
+  totalPublications?: number;
+  totalCitations?: number;
+  educationSummary?: string;
   educationDetails?: string[];
   professionalExperiences?: string[];
   personalPageUrl?: string;
   publications?: Paper[];
-  totalPublications?: number;
-  totalCitations?: number;
-  educationSummary?: string;
-};
+  biography?: string;
+}
 
-export type Paper = {
-  paperId: string;
-  title: string;
-  authors: string[] | Author[];
-  year?: number;
-  abstract?: string;
-  citationCount?: number;
-  references?: Paper[];
-  fieldsOfStudy?: string[];
-  doi?: string;
-  recommendedPapers?: Paper[]; // Tornando opcional já que a API não suporta
-};
+export type SearchType = 'papers' | 'authors';
 
 interface SearchContextType {
-  buscaTipo: 'papers' | 'autores';
-  setBuscaTipo: (tipo: 'papers' | 'autores') => void;
-  termoBusca: string;
-  setTermoBusca: (termo: string) => void;
-  resultados: Paper[] | Author[];
-  setResultados: (resultados: Paper[] | Author[]) => void;
-  carregando: boolean;
-  setCarregando: (carregando: boolean) => void;
-  erro: string | null;
-  setErro: (erro: string | null) => void;
-  detalheSelecionado: Paper | Author | null;
-  setDetalheSelecionado: (detalhe: Paper | Author | null) => void;
-  detalheCarregado: boolean;
-  setDetalheCarregado: (carregado: boolean) => void;
-  isDetailModalOpen: boolean;
-  setDetailModalOpen: (open: boolean) => void;
-  isLoginModalOpen: boolean;
-  setLoginModalOpen: (open: boolean) => void;
-  isRegisterModalOpen: boolean;
-  setRegisterModalOpen: (open: boolean) => void;
+  searchTerm: string;
+  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
+  searchType: SearchType;
+  setSearchType: React.Dispatch<React.SetStateAction<SearchType>>;
+  papers: Paper[];
+  setPapers: React.Dispatch<React.SetStateAction<Paper[]>>;
+  authors: Author[];
+  setAuthors: React.Dispatch<React.SetStateAction<Author[]>>;
+  loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  error: string | null;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
 
-export const SearchProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [buscaTipo, setBuscaTipo] = useState<'papers' | 'autores'>('papers');
-  const [termoBusca, setTermoBusca] = useState('');
-  const [resultados, setResultados] = useState<Paper[] | Author[]>([]);
-  const [carregando, setCarregando] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
-  const [detalheSelecionado, setDetalheSelecionado] = useState<Paper | Author | null>(null);
-  const [detalheCarregado, setDetalheCarregado] = useState(false);
-  const [isDetailModalOpen, setDetailModalOpen] = useState(false);
-  const [isLoginModalOpen, setLoginModalOpen] = useState(false);
-  const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
+export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchType, setSearchType] = useState<SearchType>('papers');
+  const [papers, setPapers] = useState<Paper[]>([]);
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
-    <SearchContext.Provider
+    <SearchContext.Provider 
       value={{
-        buscaTipo,
-        setBuscaTipo,
-        termoBusca,
-        setTermoBusca,
-        resultados,
-        setResultados,
-        carregando,
-        setCarregando,
-        erro,
-        setErro,
-        detalheSelecionado,
-        setDetalheSelecionado,
-        detalheCarregado,
-        setDetalheCarregado,
-        isDetailModalOpen,
-        setDetailModalOpen,
-        isLoginModalOpen,
-        setLoginModalOpen,
-        isRegisterModalOpen,
-        setRegisterModalOpen,
+        searchTerm,
+        setSearchTerm,
+        searchType,
+        setSearchType,
+        papers,
+        setPapers,
+        authors,
+        setAuthors,
+        loading,
+        setLoading,
+        error,
+        setError,
       }}
     >
       {children}

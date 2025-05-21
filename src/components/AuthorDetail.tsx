@@ -7,6 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChartContainer } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { LineChart, Line } from 'recharts';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Book, Briefcase, GraduationCap, Link as LinkIcon, Orcid } from 'lucide-react';
 
 interface AuthorDetailProps {
   author: Author;
@@ -60,30 +62,36 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
         {/* ORCID and Personal Page */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {author.orcidId && (
-            <div>
-              <h3 className="font-semibold text-gray-700">ORCID ID</h3>
-              <a 
-                href={`https://orcid.org/${author.orcidId}`} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-primary hover:underline text-sm"
-              >
-                {author.orcidId}
-              </a>
+            <div className="flex items-center gap-2">
+              <Orcid className="h-4 w-4 text-primary" />
+              <div>
+                <h3 className="font-semibold text-gray-700">ORCID ID</h3>
+                <a 
+                  href={`https://orcid.org/${author.orcidId}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-primary hover:underline text-sm"
+                >
+                  {author.orcidId}
+                </a>
+              </div>
             </div>
           )}
           
           {author.personalPageUrl && (
-            <div>
-              <h3 className="font-semibold text-gray-700">Página Pessoal</h3>
-              <a 
-                href={author.personalPageUrl} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-primary hover:underline text-sm"
-              >
-                {author.personalPageUrl}
-              </a>
+            <div className="flex items-center gap-2">
+              <LinkIcon className="h-4 w-4 text-primary" />
+              <div>
+                <h3 className="font-semibold text-gray-700">Página Pessoal</h3>
+                <a 
+                  href={author.personalPageUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-primary hover:underline text-sm"
+                >
+                  {author.personalPageUrl}
+                </a>
+              </div>
             </div>
           )}
         </div>
@@ -111,6 +119,40 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
             </div>
           )}
         </div>
+
+        {/* Affiliations in Accordion */}
+        {author.affiliations && author.affiliations.length > 0 && (
+          <div>
+            <Separator className="my-4" />
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="affiliations">
+                <AccordionTrigger className="text-base font-semibold text-gray-700">
+                  Afiliações Institucionais
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="space-y-2 pl-2">
+                    {author.affiliations.map((affiliation, index) => (
+                      <li key={index} className="text-sm text-gray-600">
+                        • {affiliation}
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        )}
+
+        {/* Biography or Summary if available */}
+        {author.biography && (
+          <div>
+            <Separator className="my-4" />
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Biografia</h3>
+              <p className="text-sm text-gray-600">{author.biography}</p>
+            </div>
+          </div>
+        )}
 
         {/* Charts for publication and citation data */}
         {hasYearlyData && (
@@ -158,14 +200,25 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
         {author.educationDetails && author.educationDetails.length > 0 && (
           <div>
             <Separator className="my-4" />
-            <h3 className="font-semibold text-gray-700 mb-2">Formação Acadêmica</h3>
-            <ul className="space-y-2">
-              {author.educationDetails.map((education, index) => (
-                <li key={index} className="text-sm text-gray-600">
-                  • {education}
-                </li>
-              ))}
-            </ul>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="education">
+                <AccordionTrigger className="text-base font-semibold text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4" />
+                    <span>Formação Acadêmica</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="space-y-2 pl-2">
+                    {author.educationDetails.map((education, index) => (
+                      <li key={index} className="text-sm text-gray-600">
+                        • {education}
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         )}
         
@@ -173,14 +226,25 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
         {author.professionalExperiences && author.professionalExperiences.length > 0 && (
           <div>
             <Separator className="my-4" />
-            <h3 className="font-semibold text-gray-700 mb-2">Experiências Profissionais</h3>
-            <ul className="space-y-2">
-              {author.professionalExperiences.map((experience, index) => (
-                <li key={index} className="text-sm text-gray-600">
-                  • {experience}
-                </li>
-              ))}
-            </ul>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="experience">
+                <AccordionTrigger className="text-base font-semibold text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    <span>Experiência Profissional</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="space-y-2 pl-2">
+                    {author.professionalExperiences.map((experience, index) => (
+                      <li key={index} className="text-sm text-gray-600">
+                        • {experience}
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         )}
         
@@ -188,29 +252,40 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
         {author.publications && author.publications.length > 0 && (
           <div>
             <Separator className="my-4" />
-            <h3 className="font-semibold text-gray-700 mb-2">Publicações ({author.publications.length})</h3>
-            <ul className="space-y-3">
-              {author.publications.map((publication, index) => (
-                <li key={publication.paperId || index} className="text-sm border-l-2 border-primary-light pl-3 py-1">
-                  <div className="font-medium text-gray-700">{publication.title}</div>
-                  <div className="text-gray-500">
-                    {typeof publication.authors === 'string' ? 
-                      publication.authors : 
-                      (Array.isArray(publication.authors) ? 
-                        (typeof publication.authors[0] === 'string' ? 
-                          publication.authors.join(', ') : 
-                          publication.authors.map((a: any) => a.name).join(', ')) : 
-                        '')}
-                    {publication.year && <span> ({publication.year})</span>}
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="publications">
+                <AccordionTrigger className="text-base font-semibold text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <Book className="h-4 w-4" />
+                    <span>Publicações ({author.publications.length})</span>
                   </div>
-                  {publication.citationCount !== undefined && (
-                    <div className="text-xs text-gray-500 mt-1">
-                      Citações: {publication.citationCount}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="space-y-3">
+                    {author.publications.map((publication, index) => (
+                      <li key={publication.paperId || index} className="text-sm border-l-2 border-primary-light pl-3 py-1">
+                        <div className="font-medium text-gray-700">{publication.title}</div>
+                        <div className="text-gray-500">
+                          {typeof publication.authors === 'string' ? 
+                            publication.authors : 
+                            (Array.isArray(publication.authors) ? 
+                              (typeof publication.authors[0] === 'string' ? 
+                                publication.authors.join(', ') : 
+                                publication.authors.map((a: any) => a.name).join(', ')) : 
+                              '')}
+                          {publication.year && <span> ({publication.year})</span>}
+                        </div>
+                        {publication.citationCount !== undefined && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Citações: {publication.citationCount}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         )}
       </CardContent>
