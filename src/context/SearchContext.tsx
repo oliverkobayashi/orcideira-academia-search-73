@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface Paper {
   paperId: string;
@@ -27,6 +27,14 @@ export interface Author {
   personalPageUrl?: string;
   publications?: Paper[];
   biography?: string;
+}
+
+export interface User {
+  id: string;
+  nome: string;
+  sobrenome: string;
+  email: string;
+  orcidId?: string;
 }
 
 export type SearchType = 'papers' | 'authors';
@@ -70,6 +78,12 @@ interface SearchContextType {
   setLoginModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isRegisterModalOpen: boolean;
   setRegisterModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  
+  // User authentication
+  currentUser: User | null;
+  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
+  isAuthenticated: boolean;
+  logout: () => void;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
@@ -83,21 +97,42 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Portuguese interface state
   const [termoBusca, setTermoBusca] = useState<string>('');
   const [buscaTipo, setBuscaTipo] = useState<SearchType>('papers');
   const [resultados, setResultados] = useState<(Paper | Author)[]>([]);
   const [carregando, setCarregando] = useState<boolean>(false);
   const [erro, setErro] = useState<string | null>(null);
   
-  // Detail view state
   const [detalheSelecionado, setDetalheSelecionado] = useState<Paper | Author | null>(null);
   const [detalheCarregado, setDetalheCarregado] = useState<boolean>(false);
   
-  // Modal control state
   const [isDetailModalOpen, setDetailModalOpen] = useState<boolean>(false);
   const [isLoginModalOpen, setLoginModalOpen] = useState<boolean>(false);
   const [isRegisterModalOpen, setRegisterModalOpen] = useState<boolean>(false);
+
+  // User authentication state
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // Check for stored user on initialization
+  useEffect(() => {
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      try {
+        setCurrentUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Erro ao carregar usuário salvo:', error);
+        localStorage.removeItem('currentUser');
+      }
+    }
+  }, []);
+
+  const isAuthenticated = currentUser !== null;
+
+  const logout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('currentUser');
+    console.log('Usuário deslogado');
+  };
 
   return (
     <SearchContext.Provider 
@@ -115,7 +150,6 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         error,
         setError,
         
-        // Portuguese interface
         buscaTipo,
         setBuscaTipo,
         termoBusca,
@@ -127,19 +161,23 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         erro,
         setErro,
         
-        // Detail view
         detalheSelecionado,
         setDetalheSelecionado,
         detalheCarregado,
         setDetalheCarregado,
         
-        // Modal control
         isDetailModalOpen,
         setDetailModalOpen,
         isLoginModalOpen,
         setLoginModalOpen,
         isRegisterModalOpen,
         setRegisterModalOpen,
+        
+        // User authentication
+        currentUser,
+        setCurrentUser,
+        isAuthenticated,
+        logout,
       }}
     >
       {children}

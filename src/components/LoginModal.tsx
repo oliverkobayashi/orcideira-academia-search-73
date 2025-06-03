@@ -16,7 +16,12 @@ import { login } from '../utils/api';
 import { useToast } from "@/components/ui/use-toast";
 
 const LoginModal: React.FC = () => {
-  const { isLoginModalOpen, setLoginModalOpen, setRegisterModalOpen } = useSearch();
+  const { 
+    isLoginModalOpen, 
+    setLoginModalOpen, 
+    setRegisterModalOpen,
+    setCurrentUser 
+  } = useSearch();
   const { toast } = useToast();
 
   const [email, setEmail] = useState('');
@@ -30,14 +35,20 @@ const LoginModal: React.FC = () => {
     setLoading(true);
 
     try {
-      await login(email, senha);
+      const response = await login(email, senha);
+      
+      // Salvar usuário no contexto e localStorage
+      setCurrentUser(response.user);
+      localStorage.setItem('currentUser', JSON.stringify(response.user));
+      
       toast({
         title: "Login realizado com sucesso",
-        description: "Você está agora logado",
+        description: `Bem-vindo, ${response.user.nome}!`,
       });
+      
       setLoginModalOpen(false);
-      // For demo purposes we're not actually navigating to a dashboard
-      // window.location.href = '/dashboard';
+      setEmail('');
+      setSenha('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login');
     } finally {

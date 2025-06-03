@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PaperDetailPage from "./pages/PaperDetail";
 import AuthorDetailPage from "./pages/AuthorDetail";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/profile" element={<UserProfile />} />
           <Route path="/paper/:id" element={<PaperDetailPage />} />
           <Route path="/author/:id" element={<AuthorDetailPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
