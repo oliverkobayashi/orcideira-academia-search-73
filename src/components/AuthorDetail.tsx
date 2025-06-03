@@ -2,12 +2,21 @@
 import React from 'react';
 import { Author } from '../context/SearchContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { LineChart, Line } from 'recharts';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Book, Briefcase, GraduationCap, Link as LinkIcon, ExternalLink } from 'lucide-react';
+import { Book, Briefcase, GraduationCap, Link as LinkIcon, ExternalLink, UserPlus, UserMinus, BookmarkPlus } from 'lucide-react';
+import { useSearch } from '../context/SearchContext';
+import { 
+  followAuthor, 
+  unfollowAuthor, 
+  isFollowingAuthor, 
+  addFavoritePaper 
+} from '../utils/userPreferences';
+import { toast } from "@/hooks/use-toast";
 
 interface AuthorDetailProps {
   author: Author;
@@ -44,17 +53,125 @@ const generateYearlyData = (publications: any[] = []) => {
 };
 
 const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
+  const { currentUser, isAuthenticated } = useSearch();
   const { pubData, citationData } = generateYearlyData(author.publications);
+  const [isFollowing, setIsFollowing] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isAuthenticated && currentUser) {
+      setIsFollowing(isFollowingAuthor(currentUser.id, author.id));
+    }
+  }, [isAuthenticated, currentUser, author.id]);
+
+  const handleFollowAuthor = () => {
+    if (!isAuthenticated || !currentUser) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa estar logado para seguir autores",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isFollowing) {
+      unfollowAuthor(currentUser.id, author.id);
+      setIsFollowing(false);
+      toast({
+        title: "Autor removido",
+        description: `Você parou de seguir ${author.name}`,
+      });
+    } else {
+      followAuthor(currentUser.id, author.id);
+      setIsFollowing(true);
+      toast({
+        title: "Autor seguido",
+        description: `Você agora está seguindo ${author.name}`,
+      });
+    }
+  };
+
+  const handleSaveAllPublications = () => {
+    if (!isAuthenticated || !currentUser) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa estar logado para salvar publicações",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!author.publications || author.publications.length === 0) {
+      toast({
+        title: "Nenhuma publicação",
+        description: "Este autor não possui publicações para salvar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    let savedCount = 0;
+    author.publications.forEach(publication => {
+      if (publication.paperId) {
+        addFavoritePaper(currentUser.id, publication.paperId);
+        savedCount++;
+      }
+    });
+
+    toast({
+      title: "Publicações salvas",
+      description: `${savedCount} publicações foram adicionadas aos seus favoritos`,
+    });
+  };
 
   const hasYearlyData = pubData.length > 0 || citationData.length > 0;
 
   return (
     <ScrollArea className="max-h-[80vh] overflow-auto pr-4">
       <CardHeader>
-        <CardTitle className="text-xl text-gray-800">{author.name}</CardTitle>
-        <CardDescription>
-          {author.affiliations.join(', ')}
-        </CardDescription>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-xl text-gray-800">{author.name}</CardTitle>
+            <CardDescription>
+              {author.affiliations.join(', ')}
+            </CardDescription>
+          </div>
+          
+          {/* Action Buttons */}
+          {isAuthenticated && (
+            <div className="flex gap-2">
+              <Button
+                variant={isFollowing ? "outline" : "default"}
+                size="sm"
+                onClick={handleFollowAuthor}
+                className="flex items-center gap-2"
+              >
+                {isFollowing ? (
+                  <>
+                    <UserMinus size={16} />
+                    Parar de seguir
+                  </>
+                ) : (
+                  <>
+                    <UserPlus size={16} />
+                    Seguir autor
+                  </>
+                )}
+              </Button>
+              
+              {author.publications && author.publications.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSaveAllPublications}
+                  className="flex items-center gap-2"
+                >
+                  <BookmarkPlus size={16} />
+                  Salvar todas ({author.publications.length})
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
       </CardHeader>
       
       <CardContent className="space-y-6">
