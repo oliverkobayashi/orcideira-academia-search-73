@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearch } from '../context/SearchContext';
-import { getUserPreferences } from '../utils/userPreferences';
+import { getFavoritePapers, getFollowedAuthors } from '../utils/userPreferences';
 import { getUserByEmail } from '../utils/userStorage';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,8 @@ import { useNavigate } from 'react-router-dom';
 const UserProfile: React.FC = () => {
   const { currentUser, isAuthenticated } = useSearch();
   const navigate = useNavigate();
-  const [userPreferences, setUserPreferences] = useState<any>(null);
+  const [favoritePapers, setFavoritePapers] = useState<any[]>([]);
+  const [followedAuthors, setFollowedAuthors] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -22,8 +23,10 @@ const UserProfile: React.FC = () => {
     }
 
     if (currentUser) {
-      const prefs = getUserPreferences(currentUser.id);
-      setUserPreferences(prefs);
+      const papers = getFavoritePapers(currentUser.id);
+      const authors = getFollowedAuthors(currentUser.id);
+      setFavoritePapers(papers);
+      setFollowedAuthors(authors);
     }
   }, [currentUser, isAuthenticated, navigate]);
 
@@ -111,14 +114,15 @@ const UserProfile: React.FC = () => {
                 <CardTitle>Artigos Favoritados</CardTitle>
               </CardHeader>
               <CardContent>
-                {userPreferences?.favoritePapers?.length > 0 ? (
+                {favoritePapers.length > 0 ? (
                   <div className="space-y-4">
-                    {userPreferences.favoritePapers.map((paperId: string) => (
-                      <div key={paperId} className="p-4 border rounded-lg">
-                        <p className="text-sm text-gray-600">Paper ID: {paperId}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Detalhes do artigo serão carregados em uma próxima atualização
-                        </p>
+                    {favoritePapers.map((paper) => (
+                      <div key={paper.paperId} className="p-4 border rounded-lg">
+                        <h3 className="font-medium text-gray-800">{paper.title}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{paper.authors}</p>
+                        {paper.year && (
+                          <p className="text-xs text-gray-500 mt-1">Ano: {paper.year}</p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -141,14 +145,20 @@ const UserProfile: React.FC = () => {
                 <CardTitle>Autores Seguidos</CardTitle>
               </CardHeader>
               <CardContent>
-                {userPreferences?.followedAuthors?.length > 0 ? (
+                {followedAuthors.length > 0 ? (
                   <div className="space-y-4">
-                    {userPreferences.followedAuthors.map((authorId: string) => (
-                      <div key={authorId} className="p-4 border rounded-lg">
-                        <p className="text-sm text-gray-600">Autor ID: {authorId}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Detalhes do autor serão carregados em uma próxima atualização
-                        </p>
+                    {followedAuthors.map((author) => (
+                      <div key={author.authorId} className="p-4 border rounded-lg flex justify-between items-center">
+                        <div>
+                          <h3 className="font-medium text-gray-800">{author.name}</h3>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/author/${author.authorId}`)}
+                        >
+                          Ver perfil
+                        </Button>
                       </div>
                     ))}
                   </div>
