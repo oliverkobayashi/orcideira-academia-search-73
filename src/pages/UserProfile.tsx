@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useSearch } from '../context/SearchContext';
-import { getUserPreferences } from '../utils/userPreferences';
 import { getUserByEmail } from '../utils/userStorage';
+import { useUserPreferences } from '../hooks/useUserPreferences';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,19 +13,14 @@ import { useNavigate } from 'react-router-dom';
 const UserProfile: React.FC = () => {
   const { currentUser, isAuthenticated } = useSearch();
   const navigate = useNavigate();
-  const [userPreferences, setUserPreferences] = useState<any>(null);
+  const userPreferences = useUserPreferences(currentUser?.id || '');
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/');
       return;
     }
-
-    if (currentUser) {
-      const prefs = getUserPreferences(currentUser.id);
-      setUserPreferences(prefs);
-    }
-  }, [currentUser, isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated || !currentUser) {
     return null;
@@ -113,14 +108,21 @@ const UserProfile: React.FC = () => {
               <CardContent>
                 {userPreferences?.favoritePapers?.length > 0 ? (
                   <div className="space-y-4">
-                    {userPreferences.favoritePapers.map((paperId: string) => (
-                      <div key={paperId} className="p-4 border rounded-lg">
-                        <p className="text-sm text-gray-600">Paper ID: {paperId}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Detalhes do artigo serão carregados em uma próxima atualização
-                        </p>
-                      </div>
-                    ))}
+                    {userPreferences.favoritePapers.map((paperId: string) => {
+                      const paperData = JSON.parse(localStorage.getItem(`paper_${paperId}`) || '{}');
+                      return (
+                        <div key={paperId} className="p-4 border rounded-lg">
+                          <h4 className="font-medium">{paperData.title || 'Título não disponível'}</h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {paperData.authors && paperData.authors.length > 0 
+                              ? `Autores: ${paperData.authors.map((a: any) => typeof a === 'string' ? a : a.name).join(', ')}`
+                              : 'Autores não disponíveis'
+                            }
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">ID: {paperId}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -143,14 +145,21 @@ const UserProfile: React.FC = () => {
               <CardContent>
                 {userPreferences?.followedAuthors?.length > 0 ? (
                   <div className="space-y-4">
-                    {userPreferences.followedAuthors.map((authorId: string) => (
-                      <div key={authorId} className="p-4 border rounded-lg">
-                        <p className="text-sm text-gray-600">Autor ID: {authorId}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Detalhes do autor serão carregados em uma próxima atualização
-                        </p>
-                      </div>
-                    ))}
+                    {userPreferences.followedAuthors.map((authorId: string) => {
+                      const authorData = JSON.parse(localStorage.getItem(`author_${authorId}`) || '{}');
+                      return (
+                        <div key={authorId} className="p-4 border rounded-lg">
+                          <h4 className="font-medium">{authorData.name || 'Nome não disponível'}</h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {authorData.affiliations && authorData.affiliations.length > 0
+                              ? `Afiliação: ${authorData.affiliations.join(', ')}`
+                              : 'Afiliação não disponível'
+                            }
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">ID: {authorId}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8">

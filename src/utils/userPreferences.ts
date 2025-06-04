@@ -1,4 +1,3 @@
-
 interface UserFavorites {
   userId: string;
   favoritePapers: string[];
@@ -53,6 +52,9 @@ const saveUserPreferences = (preferences: UserFavorites): void => {
     }
     
     localStorage.setItem(USER_PREFERENCES_KEY, JSON.stringify(allPreferences));
+    
+    // Emitir evento de mudança
+    preferencesEmitter.emit();
   } catch (error) {
     console.error('Erro ao salvar preferências do usuário:', error);
   }
