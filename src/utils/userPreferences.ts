@@ -1,10 +1,37 @@
+
 interface UserFavorites {
   userId: string;
-  favoritePapers: string[];
-  followedAuthors: string[];
+  favoritePapers: Array<{
+    id: string;
+    title: string;
+    authors?: string[];
+  }>;
+  followedAuthors: Array<{
+    id: string;
+    name: string;
+    affiliations?: string[];
+  }>;
 }
 
 const USER_PREFERENCES_KEY = 'cha_orcideira_preferences';
+
+// Event emitter para notificar mudanças nas preferências
+class PreferencesEventEmitter {
+  private listeners: (() => void)[] = [];
+
+  subscribe(callback: () => void) {
+    this.listeners.push(callback);
+    return () => {
+      this.listeners = this.listeners.filter(listener => listener !== callback);
+    };
+  }
+
+  emit() {
+    this.listeners.forEach(callback => callback());
+  }
+}
+
+export const preferencesEmitter = new PreferencesEventEmitter();
 
 // Função para obter preferências do usuário
 export const getUserPreferences = (userId: string): UserFavorites => {
@@ -61,11 +88,15 @@ const saveUserPreferences = (preferences: UserFavorites): void => {
 };
 
 // Função para adicionar paper aos favoritos
-export const addFavoritePaper = (userId: string, paperId: string): void => {
+export const addFavoritePaper = (userId: string, paperId: string, title: string, authors?: string[]): void => {
   const preferences = getUserPreferences(userId);
   
-  if (!preferences.favoritePapers.includes(paperId)) {
-    preferences.favoritePapers.push(paperId);
+  if (!preferences.favoritePapers.find(paper => paper.id === paperId)) {
+    preferences.favoritePapers.push({
+      id: paperId,
+      title,
+      authors
+    });
     saveUserPreferences(preferences);
     console.log('Paper adicionado aos favoritos:', paperId);
   }
@@ -74,7 +105,7 @@ export const addFavoritePaper = (userId: string, paperId: string): void => {
 // Função para remover paper dos favoritos
 export const removeFavoritePaper = (userId: string, paperId: string): void => {
   const preferences = getUserPreferences(userId);
-  preferences.favoritePapers = preferences.favoritePapers.filter(id => id !== paperId);
+  preferences.favoritePapers = preferences.favoritePapers.filter(paper => paper.id !== paperId);
   saveUserPreferences(preferences);
   console.log('Paper removido dos favoritos:', paperId);
 };
@@ -82,15 +113,19 @@ export const removeFavoritePaper = (userId: string, paperId: string): void => {
 // Função para verificar se paper está nos favoritos
 export const isPaperFavorite = (userId: string, paperId: string): boolean => {
   const preferences = getUserPreferences(userId);
-  return preferences.favoritePapers.includes(paperId);
+  return preferences.favoritePapers.some(paper => paper.id === paperId);
 };
 
 // Função para seguir autor
-export const followAuthor = (userId: string, authorId: string): void => {
+export const followAuthor = (userId: string, authorId: string, name: string, affiliations?: string[]): void => {
   const preferences = getUserPreferences(userId);
   
-  if (!preferences.followedAuthors.includes(authorId)) {
-    preferences.followedAuthors.push(authorId);
+  if (!preferences.followedAuthors.find(author => author.id === authorId)) {
+    preferences.followedAuthors.push({
+      id: authorId,
+      name,
+      affiliations
+    });
     saveUserPreferences(preferences);
     console.log('Autor seguido:', authorId);
   }
@@ -99,7 +134,7 @@ export const followAuthor = (userId: string, authorId: string): void => {
 // Função para deixar de seguir autor
 export const unfollowAuthor = (userId: string, authorId: string): void => {
   const preferences = getUserPreferences(userId);
-  preferences.followedAuthors = preferences.followedAuthors.filter(id => id !== authorId);
+  preferences.followedAuthors = preferences.followedAuthors.filter(author => author.id !== authorId);
   saveUserPreferences(preferences);
   console.log('Autor não seguido:', authorId);
 };
@@ -107,5 +142,5 @@ export const unfollowAuthor = (userId: string, authorId: string): void => {
 // Função para verificar se está seguindo autor
 export const isFollowingAuthor = (userId: string, authorId: string): boolean => {
   const preferences = getUserPreferences(userId);
-  return preferences.followedAuthors.includes(authorId);
+  return preferences.followedAuthors.some(author => author.id === authorId);
 };

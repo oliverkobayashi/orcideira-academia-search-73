@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useSearch } from '../context/SearchContext';
 import { getUserByEmail } from '../utils/userStorage';
@@ -108,21 +107,17 @@ const UserProfile: React.FC = () => {
               <CardContent>
                 {userPreferences?.favoritePapers?.length > 0 ? (
                   <div className="space-y-4">
-                    {userPreferences.favoritePapers.map((paperId: string) => {
-                      const paperData = JSON.parse(localStorage.getItem(`paper_${paperId}`) || '{}');
-                      return (
-                        <div key={paperId} className="p-4 border rounded-lg">
-                          <h4 className="font-medium">{paperData.title || 'Título não disponível'}</h4>
+                    {userPreferences.favoritePapers.map((paper) => (
+                      <div key={paper.id} className="p-4 border rounded-lg">
+                        <h4 className="font-medium">{paper.title}</h4>
+                        {paper.authors && paper.authors.length > 0 && (
                           <p className="text-sm text-gray-600 mt-1">
-                            {paperData.authors && paperData.authors.length > 0 
-                              ? `Autores: ${paperData.authors.map((a: any) => typeof a === 'string' ? a : a.name).join(', ')}`
-                              : 'Autores não disponíveis'
-                            }
+                            Autores: {paper.authors.join(', ')}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">ID: {paperId}</p>
-                        </div>
-                      );
-                    })}
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">ID: {paper.id}</p>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -145,21 +140,17 @@ const UserProfile: React.FC = () => {
               <CardContent>
                 {userPreferences?.followedAuthors?.length > 0 ? (
                   <div className="space-y-4">
-                    {userPreferences.followedAuthors.map((authorId: string) => {
-                      const authorData = JSON.parse(localStorage.getItem(`author_${authorId}`) || '{}');
-                      return (
-                        <div key={authorId} className="p-4 border rounded-lg">
-                          <h4 className="font-medium">{authorData.name || 'Nome não disponível'}</h4>
+                    {userPreferences.followedAuthors.map((author) => (
+                      <div key={author.id} className="p-4 border rounded-lg">
+                        <h4 className="font-medium">{author.name}</h4>
+                        {author.affiliations && author.affiliations.length > 0 && (
                           <p className="text-sm text-gray-600 mt-1">
-                            {authorData.affiliations && authorData.affiliations.length > 0
-                              ? `Afiliação: ${authorData.affiliations.join(', ')}`
-                              : 'Afiliação não disponível'
-                            }
+                            Afiliação: {author.affiliations.join(', ')}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">ID: {authorId}</p>
-                        </div>
-                      );
-                    })}
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">ID: {author.id}</p>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center py-8">
