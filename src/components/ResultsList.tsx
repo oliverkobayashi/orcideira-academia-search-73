@@ -84,7 +84,7 @@ const ResultsList: React.FC = () => {
     }
   };
 
-  const handleFavoritePaper = (paper: Paper) => {
+  const handleFavoritePaper = (paperId: string) => {
     if (!isAuthenticated || !currentUser) {
       toast({
         title: "Login necessário",
@@ -94,32 +94,16 @@ const ResultsList: React.FC = () => {
       return;
     }
 
-    const isFavorite = isPaperFavorite(currentUser.id, paper.paperId);
+    const isFavorite = isPaperFavorite(currentUser.id, paperId);
     
     if (isFavorite) {
-      removeFavoritePaper(currentUser.id, paper.paperId);
+      removeFavoritePaper(currentUser.id, paperId);
       toast({
         title: "Artigo removido dos favoritos",
         description: "Artigo removido da sua lista de favoritos",
       });
     } else {
-      // Extract authors from paper object
-      let authorsString = '';
-      if (Array.isArray(paper.authors)) {
-        if (paper.authors.length > 0 && typeof paper.authors[0] === 'string') {
-          authorsString = (paper.authors as string[]).join(', ');
-        } else if (paper.authors.length > 0 && typeof paper.authors[0] === 'object') {
-          authorsString = (paper.authors as {name: string}[]).map(author => author.name).join(', ');
-        }
-      }
-      
-      addFavoritePaper(
-        currentUser.id, 
-        paper.paperId, 
-        paper.title, 
-        authorsString || 'Autores não disponíveis', 
-        paper.year
-      );
+      addFavoritePaper(currentUser.id, paperId);
       toast({
         title: "Artigo favoritado",
         description: "Artigo adicionado aos seus favoritos",
@@ -127,7 +111,7 @@ const ResultsList: React.FC = () => {
     }
   };
 
-  const handleFollowAuthor = (author: Author) => {
+  const handleFollowAuthor = (authorId: string) => {
     if (!isAuthenticated || !currentUser) {
       toast({
         title: "Login necessário",
@@ -137,16 +121,16 @@ const ResultsList: React.FC = () => {
       return;
     }
 
-    const isFollowing = isFollowingAuthor(currentUser.id, author.id);
+    const isFollowing = isFollowingAuthor(currentUser.id, authorId);
     
     if (isFollowing) {
-      unfollowAuthor(currentUser.id, author.id);
+      unfollowAuthor(currentUser.id, authorId);
       toast({
         title: "Deixou de seguir",
         description: "Você não está mais seguindo este autor",
       });
     } else {
-      followAuthor(currentUser.id, author.id, author.name);
+      followAuthor(currentUser.id, authorId);
       toast({
         title: "Seguindo autor",
         description: "Você agora está seguindo este autor",
@@ -226,7 +210,7 @@ const ResultsList: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleFavoritePaper(paper)}
+                    onClick={() => handleFavoritePaper(paper.paperId)}
                     className="flex items-center gap-1"
                   >
                     {isFavorite ? (
@@ -286,7 +270,7 @@ const ResultsList: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleFollowAuthor(author)}
+                    onClick={() => handleFollowAuthor(author.id)}
                     className="flex items-center gap-1"
                   >
                     {isFollowing ? (
