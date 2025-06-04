@@ -2,36 +2,18 @@
 interface UserFavorites {
   userId: string;
   favoritePapers: Array<{
-    id: string;
+    paperId: string;
     title: string;
-    authors?: string[];
+    authors: string;
+    year?: number;
   }>;
   followedAuthors: Array<{
-    id: string;
+    authorId: string;
     name: string;
-    affiliations?: string[];
   }>;
 }
 
 const USER_PREFERENCES_KEY = 'cha_orcideira_preferences';
-
-// Event emitter para notificar mudanças nas preferências
-class PreferencesEventEmitter {
-  private listeners: (() => void)[] = [];
-
-  subscribe(callback: () => void) {
-    this.listeners.push(callback);
-    return () => {
-      this.listeners = this.listeners.filter(listener => listener !== callback);
-    };
-  }
-
-  emit() {
-    this.listeners.forEach(callback => callback());
-  }
-}
-
-export const preferencesEmitter = new PreferencesEventEmitter();
 
 // Função para obter preferências do usuário
 export const getUserPreferences = (userId: string): UserFavorites => {
@@ -79,23 +61,22 @@ const saveUserPreferences = (preferences: UserFavorites): void => {
     }
     
     localStorage.setItem(USER_PREFERENCES_KEY, JSON.stringify(allPreferences));
-    
-    // Emitir evento de mudança
-    preferencesEmitter.emit();
   } catch (error) {
     console.error('Erro ao salvar preferências do usuário:', error);
   }
 };
 
-// Função para adicionar paper aos favoritos
-export const addFavoritePaper = (userId: string, paperId: string, title: string, authors?: string[]): void => {
+// Função para adicionar paper aos favoritos com metadados
+export const addFavoritePaper = (userId: string, paperId: string, title?: string, authors?: string, year?: number): void => {
   const preferences = getUserPreferences(userId);
   
-  if (!preferences.favoritePapers.find(paper => paper.id === paperId)) {
+  const existingPaper = preferences.favoritePapers.find(paper => paper.paperId === paperId);
+  if (!existingPaper) {
     preferences.favoritePapers.push({
-      id: paperId,
-      title,
-      authors
+      paperId,
+      title: title || 'Título não disponível',
+      authors: authors || 'Autores não disponíveis',
+      year
     });
     saveUserPreferences(preferences);
     console.log('Paper adicionado aos favoritos:', paperId);
@@ -105,7 +86,7 @@ export const addFavoritePaper = (userId: string, paperId: string, title: string,
 // Função para remover paper dos favoritos
 export const removeFavoritePaper = (userId: string, paperId: string): void => {
   const preferences = getUserPreferences(userId);
-  preferences.favoritePapers = preferences.favoritePapers.filter(paper => paper.id !== paperId);
+  preferences.favoritePapers = preferences.favoritePapers.filter(paper => paper.paperId !== paperId);
   saveUserPreferences(preferences);
   console.log('Paper removido dos favoritos:', paperId);
 };
@@ -113,18 +94,18 @@ export const removeFavoritePaper = (userId: string, paperId: string): void => {
 // Função para verificar se paper está nos favoritos
 export const isPaperFavorite = (userId: string, paperId: string): boolean => {
   const preferences = getUserPreferences(userId);
-  return preferences.favoritePapers.some(paper => paper.id === paperId);
+  return preferences.favoritePapers.some(paper => paper.paperId === paperId);
 };
 
-// Função para seguir autor
-export const followAuthor = (userId: string, authorId: string, name: string, affiliations?: string[]): void => {
+// Função para seguir autor com metadados
+export const followAuthor = (userId: string, authorId: string, authorName?: string): void => {
   const preferences = getUserPreferences(userId);
   
-  if (!preferences.followedAuthors.find(author => author.id === authorId)) {
+  const existingAuthor = preferences.followedAuthors.find(author => author.authorId === authorId);
+  if (!existingAuthor) {
     preferences.followedAuthors.push({
-      id: authorId,
-      name,
-      affiliations
+      authorId,
+      name: authorName || 'Nome não disponível'
     });
     saveUserPreferences(preferences);
     console.log('Autor seguido:', authorId);
@@ -134,7 +115,7 @@ export const followAuthor = (userId: string, authorId: string, name: string, aff
 // Função para deixar de seguir autor
 export const unfollowAuthor = (userId: string, authorId: string): void => {
   const preferences = getUserPreferences(userId);
-  preferences.followedAuthors = preferences.followedAuthors.filter(author => author.id !== authorId);
+  preferences.followedAuthors = preferences.followedAuthors.filter(author => author.authorId !== authorId);
   saveUserPreferences(preferences);
   console.log('Autor não seguido:', authorId);
 };
@@ -142,5 +123,17 @@ export const unfollowAuthor = (userId: string, authorId: string): void => {
 // Função para verificar se está seguindo autor
 export const isFollowingAuthor = (userId: string, authorId: string): boolean => {
   const preferences = getUserPreferences(userId);
-  return preferences.followedAuthors.some(author => author.id === authorId);
+  return preferences.followedAuthors.some(author => author.authorId === authorId);
+};
+
+// Função para obter papers favoritos do usuário
+export const getFavoritePapers = (userId: string) => {
+  const preferences = getUserPreferences(userId);
+  return preferences.favoritePapers;
+};
+
+// Função para obter autores seguidos pelo usuário
+export const getFollowedAuthors = (userId: string) => {
+  const preferences = getUserPreferences(userId);
+  return preferences.followedAuthors;
 };

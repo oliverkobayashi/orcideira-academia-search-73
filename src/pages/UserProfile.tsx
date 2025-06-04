@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useSearch } from '../context/SearchContext';
+import { getFavoritePapers, getFollowedAuthors } from '../utils/userPreferences';
 import { getUserByEmail } from '../utils/userStorage';
-import { useUserPreferences } from '../hooks/useUserPreferences';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,14 +13,22 @@ import { useNavigate } from 'react-router-dom';
 const UserProfile: React.FC = () => {
   const { currentUser, isAuthenticated } = useSearch();
   const navigate = useNavigate();
-  const userPreferences = useUserPreferences(currentUser?.id || '');
+  const [favoritePapers, setFavoritePapers] = useState<any[]>([]);
+  const [followedAuthors, setFollowedAuthors] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/');
       return;
     }
-  }, [isAuthenticated, navigate]);
+
+    if (currentUser) {
+      const papers = getFavoritePapers(currentUser.id);
+      const authors = getFollowedAuthors(currentUser.id);
+      setFavoritePapers(papers);
+      setFollowedAuthors(authors);
+    }
+  }, [currentUser, isAuthenticated, navigate]);
 
   if (!isAuthenticated || !currentUser) {
     return null;
@@ -105,17 +114,15 @@ const UserProfile: React.FC = () => {
                 <CardTitle>Artigos Favoritados</CardTitle>
               </CardHeader>
               <CardContent>
-                {userPreferences?.favoritePapers?.length > 0 ? (
+                {favoritePapers.length > 0 ? (
                   <div className="space-y-4">
-                    {userPreferences.favoritePapers.map((paper) => (
-                      <div key={paper.id} className="p-4 border rounded-lg">
-                        <h4 className="font-medium">{paper.title}</h4>
-                        {paper.authors && paper.authors.length > 0 && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            Autores: {paper.authors.join(', ')}
-                          </p>
+                    {favoritePapers.map((paper) => (
+                      <div key={paper.paperId} className="p-4 border rounded-lg">
+                        <h3 className="font-medium text-gray-800">{paper.title}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{paper.authors}</p>
+                        {paper.year && (
+                          <p className="text-xs text-gray-500 mt-1">Ano: {paper.year}</p>
                         )}
-                        <p className="text-xs text-gray-500 mt-1">ID: {paper.id}</p>
                       </div>
                     ))}
                   </div>
@@ -138,17 +145,20 @@ const UserProfile: React.FC = () => {
                 <CardTitle>Autores Seguidos</CardTitle>
               </CardHeader>
               <CardContent>
-                {userPreferences?.followedAuthors?.length > 0 ? (
+                {followedAuthors.length > 0 ? (
                   <div className="space-y-4">
-                    {userPreferences.followedAuthors.map((author) => (
-                      <div key={author.id} className="p-4 border rounded-lg">
-                        <h4 className="font-medium">{author.name}</h4>
-                        {author.affiliations && author.affiliations.length > 0 && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            Afiliação: {author.affiliations.join(', ')}
-                          </p>
-                        )}
-                        <p className="text-xs text-gray-500 mt-1">ID: {author.id}</p>
+                    {followedAuthors.map((author) => (
+                      <div key={author.authorId} className="p-4 border rounded-lg flex justify-between items-center">
+                        <div>
+                          <h3 className="font-medium text-gray-800">{author.name}</h3>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/author/${author.authorId}`)}
+                        >
+                          Ver perfil
+                        </Button>
                       </div>
                     ))}
                   </div>
