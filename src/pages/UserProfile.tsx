@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearch } from '../context/SearchContext';
 import { getFavoritePapers, getFollowedAuthors } from '../utils/userPreferences';
@@ -10,56 +11,55 @@ import { User, BookmarkCheck, UserCheck, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const UserProfile: React.FC = () => {
-  const { currentUser, isAuthenticated, isAuthLoading } = useSearch(); // Obter isAuthLoading
+  const { currentUser, isAuthenticated } = useSearch();
   const navigate = useNavigate();
   const [favoritePapers, setFavoritePapers] = useState<any[]>([]);
   const [followedAuthors, setFollowedAuthors] = useState<any[]>([]);
+  const [userKey, setUserKey] = useState<string>('');
+
+  // Force component to re-render when user changes by updating a key
+  useEffect(() => {
+    if (currentUser) {
+      setUserKey(`${currentUser.id}-${Date.now()}`);
+      console.log('UserProfile: Usuário mudou, atualizando componente:', currentUser.email);
+    } else {
+      setUserKey('no-user');
+    }
+  }, [currentUser?.id, currentUser?.email]);
 
   useEffect(() => {
-    if (isAuthLoading) {
-      return; // Aguarda a conclusão do carregamento do estado de autenticação
-    }
+    console.log('UserProfile: useEffect executado', { 
+      isAuthenticated, 
+      currentUser: currentUser?.email || 'nenhum',
+      userKey 
+    });
 
     if (!isAuthenticated) {
-      navigate('/'); // Redireciona se não estiver autenticado (APÓS o carregamento)
+      console.log('UserProfile: Usuário não autenticado, redirecionando...');
+      navigate('/');
       return;
     }
 
     if (currentUser) {
+      console.log('UserProfile: Carregando dados do usuário:', currentUser.email);
       const papers = getFavoritePapers(currentUser.id);
       const authors = getFollowedAuthors(currentUser.id);
       setFavoritePapers(papers);
       setFollowedAuthors(authors);
+      console.log('UserProfile: Dados carregados:', { papers: papers.length, authors: authors.length });
     }
-  }, [currentUser, isAuthenticated, isAuthLoading, navigate]); // Adicionar isAuthLoading às dependências
+  }, [currentUser, isAuthenticated, navigate, userKey]);
 
-  if (isAuthLoading) {
-    // Exibe um indicador de carregamento enquanto o estado de autenticação é verificado
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
-          <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
-            Carregando...
-          </span>
-        </div>
-        <p className="ml-4 text-gray-700 text-lg">Carregando perfil...</p>
-      </div>
-    );
-  }
-
-  // Após o carregamento do estado de autenticação, se o usuário ainda não estiver autenticado ou currentUser for nulo
   if (!isAuthenticated || !currentUser) {
-    // O useEffect acima deve ter lidado com o redirecionamento.
-    // Este return null é uma segurança ou para o breve momento antes do redirecionamento.
+    console.log('UserProfile: Renderizando null - usuário não autenticado');
     return null;
   }
 
-  // A linha abaixo pode ser removida se `fullUser` não for usado em nenhum outro lugar,
-  // pois `currentUser` já contém as informações necessárias para o cabeçalho.
-  // const fullUser = getUserByEmail(currentUser.email);
+  const fullUser = getUserByEmail(currentUser.email);
+  console.log('UserProfile: Renderizando perfil para:', currentUser.email);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" key={userKey}>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header do Perfil */}
         <Card className="mb-8">

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface Paper {
@@ -52,6 +53,7 @@ interface SearchContextType {
   error: string | null;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   
+  // Additional properties for the Portuguese interface
   buscaTipo: SearchType;
   setBuscaTipo: React.Dispatch<React.SetStateAction<SearchType>>;
   termoBusca: string;
@@ -63,11 +65,13 @@ interface SearchContextType {
   erro: string | null;
   setErro: React.Dispatch<React.SetStateAction<string | null>>;
   
+  // Detail view properties
   detalheSelecionado: Paper | Author | null;
   setDetalheSelecionado: React.Dispatch<React.SetStateAction<Paper | Author | null>>;
   detalheCarregado: boolean;
   setDetalheCarregado: React.Dispatch<React.SetStateAction<boolean>>;
   
+  // Modal control properties
   isDetailModalOpen: boolean;
   setDetailModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isLoginModalOpen: boolean;
@@ -75,16 +79,17 @@ interface SearchContextType {
   isRegisterModalOpen: boolean;
   setRegisterModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   
+  // User authentication
   currentUser: User | null;
   setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
   isAuthenticated: boolean;
-  isAuthLoading: boolean; // Novo estado
   logout: () => void;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
 
 export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // English interface state
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [searchType, setSearchType] = useState<SearchType>('papers');
   const [papers, setPapers] = useState<Paper[]>([]);
@@ -105,30 +110,31 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isLoginModalOpen, setLoginModalOpen] = useState<boolean>(false);
   const [isRegisterModalOpen, setRegisterModalOpen] = useState<boolean>(false);
 
+  // User authentication state
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true); // Inicia como true
 
+  // Check for stored user on initialization
   useEffect(() => {
-    setIsAuthLoading(true); // Define como true no início da verificação
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       try {
-        setCurrentUser(JSON.parse(storedUser));
+        const user = JSON.parse(storedUser);
+        console.log('SearchContext: Carregando usuário salvo:', user.email);
+        setCurrentUser(user);
       } catch (error) {
         console.error('Erro ao carregar usuário salvo:', error);
         localStorage.removeItem('currentUser');
       }
     }
-    setIsAuthLoading(false); // Define como false após a tentativa de carregar
   }, []);
 
   const isAuthenticated = currentUser !== null;
 
   const logout = () => {
+    console.log('SearchContext: Fazendo logout do usuário:', currentUser?.email || 'nenhum');
     setCurrentUser(null);
     localStorage.removeItem('currentUser');
-    // setIsAuthLoading(false); // Não é estritamente necessário aqui
-    console.log('Usuário deslogado');
+    console.log('SearchContext: Usuário deslogado com sucesso');
   };
 
   return (
@@ -170,10 +176,10 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         isRegisterModalOpen,
         setRegisterModalOpen,
         
+        // User authentication
         currentUser,
         setCurrentUser,
         isAuthenticated,
-        isAuthLoading, // Fornece o novo estado
         logout,
       }}
     >
