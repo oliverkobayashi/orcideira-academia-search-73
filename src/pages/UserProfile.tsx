@@ -15,51 +15,29 @@ const UserProfile: React.FC = () => {
   const navigate = useNavigate();
   const [favoritePapers, setFavoritePapers] = useState<any[]>([]);
   const [followedAuthors, setFollowedAuthors] = useState<any[]>([]);
-  const [userKey, setUserKey] = useState<string>('');
-
-  // Force component to re-render when user changes by updating a key
-  useEffect(() => {
-    if (currentUser) {
-      setUserKey(`${currentUser.id}-${Date.now()}`);
-      console.log('UserProfile: Usuário mudou, atualizando componente:', currentUser.email);
-    } else {
-      setUserKey('no-user');
-    }
-  }, [currentUser?.id, currentUser?.email]);
 
   useEffect(() => {
-    console.log('UserProfile: useEffect executado', { 
-      isAuthenticated, 
-      currentUser: currentUser?.email || 'nenhum',
-      userKey 
-    });
-
     if (!isAuthenticated) {
-      console.log('UserProfile: Usuário não autenticado, redirecionando...');
       navigate('/');
       return;
     }
 
     if (currentUser) {
-      console.log('UserProfile: Carregando dados do usuário:', currentUser.email);
       const papers = getFavoritePapers(currentUser.id);
       const authors = getFollowedAuthors(currentUser.id);
       setFavoritePapers(papers);
       setFollowedAuthors(authors);
-      console.log('UserProfile: Dados carregados:', { papers: papers.length, authors: authors.length });
     }
-  }, [currentUser, isAuthenticated, navigate, userKey]);
+  }, [currentUser, isAuthenticated, navigate]);
 
   if (!isAuthenticated || !currentUser) {
-    console.log('UserProfile: Renderizando null - usuário não autenticado');
     return null;
   }
 
   const fullUser = getUserByEmail(currentUser.email);
-  console.log('UserProfile: Renderizando perfil para:', currentUser.email);
 
   return (
-    <div className="min-h-screen bg-gray-50" key={userKey}>
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header do Perfil */}
         <Card className="mb-8">

@@ -35,10 +35,8 @@ const LoginModal: React.FC = () => {
     setLoading(true);
 
     try {
-      console.log('LoginModal: Tentando fazer login para:', email);
       const response = await login(email, senha);
       
-      console.log('LoginModal: Login bem-sucedido, atualizando contexto');
       // Salvar usuário no contexto e localStorage
       setCurrentUser(response.user);
       localStorage.setItem('currentUser', JSON.stringify(response.user));
@@ -51,9 +49,7 @@ const LoginModal: React.FC = () => {
       setLoginModalOpen(false);
       setEmail('');
       setSenha('');
-      console.log('LoginModal: Estado de login atualizado');
     } catch (err) {
-      console.error('LoginModal: Erro no login:', err);
       setError(err instanceof Error ? err.message : 'Erro ao fazer login');
     } finally {
       setLoading(false);

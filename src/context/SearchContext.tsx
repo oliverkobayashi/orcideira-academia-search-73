@@ -118,9 +118,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       try {
-        const user = JSON.parse(storedUser);
-        console.log('SearchContext: Carregando usuário salvo:', user.email);
-        setCurrentUser(user);
+        setCurrentUser(JSON.parse(storedUser));
       } catch (error) {
         console.error('Erro ao carregar usuário salvo:', error);
         localStorage.removeItem('currentUser');
@@ -131,10 +129,9 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const isAuthenticated = currentUser !== null;
 
   const logout = () => {
-    console.log('SearchContext: Fazendo logout do usuário:', currentUser?.email || 'nenhum');
     setCurrentUser(null);
     localStorage.removeItem('currentUser');
-    console.log('SearchContext: Usuário deslogado com sucesso');
+    console.log('Usuário deslogado');
   };
 
   return (
