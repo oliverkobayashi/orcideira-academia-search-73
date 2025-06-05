@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getPaperDetails } from '../utils/api';
 import { Paper } from '../context/SearchContext';
 import { Card } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
+import {  toast } from "@/hooks/use-toast";
 import { ArrowLeft, Bookmark, BookmarkCheck } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import PaperDetail from '../components/PaperDetail';
@@ -71,9 +71,12 @@ const PaperDetailPage: React.FC = () => {
         description: "Artigo removido da sua lista de favoritos",
       });
     } else {
+      // Fix the authors handling to properly handle both string[] and {name: string}[] types
       const authorsString = Array.isArray(paper.authors) 
-        ? paper.authors.join(', ') 
-        : paper.authors?.map((a: any) => typeof a === 'string' ? a : a.name).join(', ') || 'Autores não disponíveis';
+        ? (typeof paper.authors[0] === 'string' 
+            ? paper.authors.join(', ') 
+            : paper.authors.map((a: any) => a.name).join(', '))
+        : 'Autores não disponíveis';
       
       addFavoritePaper(currentUser.id, paper.paperId, paper.title, authorsString, paper.year);
       toast({
