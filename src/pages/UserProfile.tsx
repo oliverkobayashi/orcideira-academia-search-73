@@ -1,13 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearch } from '../context/SearchContext';
 import { getFavoritePapers, getFollowedAuthors } from '../utils/userPreferences';
-import { getUserByEmail } from '../utils/userStorage';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, BookmarkCheck, UserCheck, Users } from 'lucide-react';
+import { User, BookmarkCheck, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const UserProfile: React.FC = () => {
@@ -15,51 +13,47 @@ const UserProfile: React.FC = () => {
   const navigate = useNavigate();
   const [favoritePapers, setFavoritePapers] = useState<any[]>([]);
   const [followedAuthors, setFollowedAuthors] = useState<any[]>([]);
-  const [userKey, setUserKey] = useState<string>('');
+  const [userProfileKey, setUserProfileKey] = useState<string | undefined>(undefined);
 
-  // Force component to re-render when user changes by updating a key
   useEffect(() => {
     if (currentUser) {
-      setUserKey(`${currentUser.id}-${Date.now()}`);
-      console.log('UserProfile: Usuário mudou, atualizando componente:', currentUser.email);
+      setUserProfileKey(currentUser.id);
+      console.log('UserProfile: Chave do perfil definida para:', currentUser.id);
     } else {
-      setUserKey('no-user');
+      setUserProfileKey('logged-out'); // Uma chave para o estado quando não há usuário.
+      console.log('UserProfile: Chave do perfil definida para: logged-out');
     }
-  }, [currentUser?.id, currentUser?.email]);
+  }, [currentUser]);
 
   useEffect(() => {
-    console.log('UserProfile: useEffect executado', { 
-      isAuthenticated, 
-      currentUser: currentUser?.email || 'nenhum',
-      userKey 
-    });
+    console.log('UserProfile: Tentando carregar dados. UserID:', currentUser?.id, 'Autenticado:', isAuthenticated);
 
-    if (!isAuthenticated) {
-      console.log('UserProfile: Usuário não autenticado, redirecionando...');
+    if (!isAuthenticated || !currentUser) {
+      console.log('UserProfile: Não autenticado ou currentUser nulo. Redirecionando...');
       navigate('/');
       return;
     }
+    
+    console.log('UserProfile: Carregando dados para o usuário:', currentUser.email);
+    const papers = getFavoritePapers(currentUser.id); 
+    const authors = getFollowedAuthors(currentUser.id); 
+    setFavoritePapers(papers);
+    setFollowedAuthors(authors);
+    console.log('UserProfile: Dados carregados:', { papers: papers.length, authors: authors.length });
 
-    if (currentUser) {
-      console.log('UserProfile: Carregando dados do usuário:', currentUser.email);
-      const papers = getFavoritePapers(currentUser.id);
-      const authors = getFollowedAuthors(currentUser.id);
-      setFavoritePapers(papers);
-      setFollowedAuthors(authors);
-      console.log('UserProfile: Dados carregados:', { papers: papers.length, authors: authors.length });
-    }
-  }, [currentUser, isAuthenticated, navigate, userKey]);
+  }, [currentUser, isAuthenticated, navigate]);
 
-  if (!isAuthenticated || !currentUser) {
-    console.log('UserProfile: Renderizando null - usuário não autenticado');
-    return null;
+  if (!isAuthenticated || !currentUser || userProfileKey === undefined) {
+    console.log('UserProfile: Renderizando estado de carregamento/espera. Autenticado:', isAuthenticated, 'CurrentUser:', !!currentUser, 'Key:', userProfileKey);
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>Carregando perfil do usuário...</p>
+      </div>
+    );
   }
 
-  const fullUser = getUserByEmail(currentUser.email);
-  console.log('UserProfile: Renderizando perfil para:', currentUser.email);
-
   return (
-    <div className="min-h-screen bg-gray-50" key={userKey}>
+    <div className="min-h-screen bg-gray-50" key={userProfileKey}> {/* */}
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header do Perfil */}
         <Card className="mb-8">
@@ -104,6 +98,7 @@ const UserProfile: React.FC = () => {
             </TabsTrigger>
           </TabsList>
 
+          {/* Conteúdo das Tabs */}
           <TabsContent value="publications" className="mt-6">
             <Card>
               <CardHeader>
@@ -186,7 +181,7 @@ const UserProfile: React.FC = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <UserCheck className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600">Não está seguindo nenhum autor ainda</p>
                     <p className="text-sm text-gray-500 mt-2">
                       Siga autores durante suas buscas para vê-los aqui
