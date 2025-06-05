@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -14,17 +13,18 @@ import { User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Header: React.FC = () => {
-  const { 
-    setLoginModalOpen, 
-    setRegisterModalOpen, 
-    currentUser, 
+  const {
+    setLoginModalOpen,
+    setRegisterModalOpen,
+    currentUser,
     isAuthenticated,
-    logout 
+    logout
   } = useSearch();
   const navigate = useNavigate();
 
   const handleProfileClick = () => {
-    navigate('/profile');
+    // Modificado para forçar o recarregamento da página
+    window.location.assign('/profile');
   };
 
   const handleLogout = () => {
@@ -60,14 +60,14 @@ const Header: React.FC = () => {
           </DropdownMenu>
         ) : (
           <>
-            <Button 
+            <Button
               variant="outline"
               className="text-gray-700 hover:text-primary hover:border-primary"
               onClick={() => setLoginModalOpen(true)}
             >
               Login
             </Button>
-            <Button 
+            <Button
               className="bg-primary hover:bg-primary-dark"
               onClick={() => setRegisterModalOpen(true)}
             >
