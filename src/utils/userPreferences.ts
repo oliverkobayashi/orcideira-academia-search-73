@@ -1,3 +1,4 @@
+
 interface UserFavorites {
   userId: string;
   favoritePapers: Array<{
@@ -13,13 +14,6 @@ interface UserFavorites {
 }
 
 const USER_PREFERENCES_KEY = 'cha_orcideira_preferences';
-
-// Função para disparar evento de atualização
-const notifyPreferencesUpdate = (): void => {
-  // Disparar evento customizado para components que estão escutando
-  window.dispatchEvent(new CustomEvent('userPreferencesUpdated'));
-  console.log('Evento de atualização de preferências disparado');
-};
 
 // Função para obter preferências do usuário
 export const getUserPreferences = (userId: string): UserFavorites => {
@@ -67,8 +61,6 @@ const saveUserPreferences = (preferences: UserFavorites): void => {
     }
     
     localStorage.setItem(USER_PREFERENCES_KEY, JSON.stringify(allPreferences));
-    // Notificar que as preferências foram atualizadas
-    notifyPreferencesUpdate();
   } catch (error) {
     console.error('Erro ao salvar preferências do usuário:', error);
   }

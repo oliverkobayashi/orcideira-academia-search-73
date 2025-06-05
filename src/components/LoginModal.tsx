@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,16 +28,6 @@ const LoginModal: React.FC = () => {
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Limpar formulário quando o modal abrir
-  useEffect(() => {
-    if (isLoginModalOpen) {
-      setEmail('');
-      setSenha('');
-      setError(null);
-      setLoading(false);
-    }
-  }, [isLoginModalOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

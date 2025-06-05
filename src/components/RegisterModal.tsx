@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,22 +30,6 @@ const RegisterModal: React.FC = () => {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Limpar formulário quando o modal abrir
-  useEffect(() => {
-    if (isRegisterModalOpen) {
-      setFormData({
-        nome: '',
-        sobrenome: '',
-        email: '',
-        orcidId: '',
-        senha: '',
-        confirmacaoSenha: '',
-      });
-      setError(null);
-      setLoading(false);
-    }
-  }, [isRegisterModalOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
