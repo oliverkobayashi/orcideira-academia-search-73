@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearch } from '../context/SearchContext';
 import { getFavoritePapers, getFollowedAuthors } from '../utils/userPreferences';
@@ -16,6 +15,15 @@ const UserProfile: React.FC = () => {
   const [favoritePapers, setFavoritePapers] = useState<any[]>([]);
   const [followedAuthors, setFollowedAuthors] = useState<any[]>([]);
 
+  // Função para carregar dados do usuário
+  const loadUserData = (userId: string) => {
+    const papers = getFavoritePapers(userId);
+    const authors = getFollowedAuthors(userId);
+    setFavoritePapers(papers);
+    setFollowedAuthors(authors);
+    console.log('Dados carregados para usuário:', userId, { papers, authors });
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/');
@@ -23,12 +31,36 @@ const UserProfile: React.FC = () => {
     }
 
     if (currentUser) {
-      const papers = getFavoritePapers(currentUser.id);
-      const authors = getFollowedAuthors(currentUser.id);
-      setFavoritePapers(papers);
-      setFollowedAuthors(authors);
+      // Carregar dados imediatamente quando o usuário mudar
+      loadUserData(currentUser.id);
     }
   }, [currentUser, isAuthenticated, navigate]);
+
+  // Listener para mudanças nas preferências
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'cha_orcideira_preferences') {
+        console.log('Preferências atualizadas, recarregando dados...');
+        loadUserData(currentUser.id);
+      }
+    };
+
+    // Listener customizado para mudanças internas
+    const handlePreferencesUpdate = () => {
+      console.log('Event listener ativado, recarregando dados...');
+      loadUserData(currentUser.id);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('userPreferencesUpdated', handlePreferencesUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('userPreferencesUpdated', handlePreferencesUpdate);
+    };
+  }, [currentUser]);
 
   if (!isAuthenticated || !currentUser) {
     return null;
