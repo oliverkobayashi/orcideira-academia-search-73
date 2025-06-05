@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/use-toast";
 const RegisterModal: React.FC = () => {
   const { isRegisterModalOpen, setRegisterModalOpen, setLoginModalOpen, currentUser } = useSearch();
   const { toast } = useToast();
+  const previousUserRef = useRef(currentUser);
 
   const initialFormData = {
     nome: '',
@@ -40,10 +41,17 @@ const RegisterModal: React.FC = () => {
     }
   }, [isRegisterModalOpen]);
 
-  // Reset form when user changes (logout/login)
+  // Reset form only when user actually changes (login/logout)
   useEffect(() => {
-    setFormData(initialFormData);
-    setError(null);
+    const previousUser = previousUserRef.current;
+    
+    // Only reset if there was actually a user change (not just navigation)
+    if (previousUser?.id !== currentUser?.id) {
+      setFormData(initialFormData);
+      setError(null);
+    }
+    
+    previousUserRef.current = currentUser;
   }, [currentUser]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
